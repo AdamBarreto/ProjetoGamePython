@@ -10,11 +10,18 @@ pygame.display.set_caption("Protótipo")
 
 BG = pygame.transform.scale(pygame.image.load("fundoArena.jpg"), (WIDTH, HEIGHT))
 
-PLAYER_WIDTH = 80
+PLAYER_WIDTH = 100
 PLAYER_HEIGHT = 120
+PLAYER_POS_X = 400
+PLAYER_POS_Y = 530
 
 ENEMY_WIDTH = 40 #PLAYER_WIDTH*0.5, para ter alguma perspectiva de profundidade
 ENEMY_HEIGHT = 60 #PLAYER_HEIGHT*0.5
+ENEMY_POS_X = 700
+ENEMY_POS_Y = 294
+
+CENTER_X, CENTER_Y = PLAYER_POS_X, PLAYER_POS_Y
+SPACING = 100
 
 PLAYER_VEL = 5
 STAR_WIDTH = 10
@@ -39,9 +46,9 @@ def draw(player, elapsed_time, stars, enemy):
 def main():
     run = True
 
-    player = pygame.Rect(340, HEIGHT - 220,
+    player = pygame.Rect(PLAYER_POS_X, PLAYER_POS_Y,
                           PLAYER_WIDTH, PLAYER_HEIGHT)
-    enemy = pygame.Rect(700, HEIGHT - 456,
+    enemy = pygame.Rect(ENEMY_POS_X, ENEMY_POS_Y,
                          ENEMY_WIDTH, ENEMY_HEIGHT)
 
     clock = pygame.time.Clock()
@@ -50,6 +57,11 @@ def main():
 
     star_add_increment = 2000
     star_count = 0
+
+    grid_x = 1
+    grid_y = 1
+    target_x = PLAYER_POS_X
+    target_y = PLAYER_POS_Y
 
     stars = []
     hit = False
@@ -81,16 +93,27 @@ def main():
             star_add_increment = max(200, star_add_increment - 50)
             star_count = 0
             
+        
+        target_x = CENTER_X + (grid_x - 1) * SPACING
+        target_y = CENTER_Y + (grid_y - 1) * SPACING
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-                break
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT and grid_x > 0:
+                    grid_x -= 1
+                if event.key == pygame.K_RIGHT and grid_x < 2: #movimentação 3x3
+                    grid_x += 1
+                if event.key == pygame.K_UP and grid_y > 0:
+                    grid_y -= 1
+                if event.key == pygame.K_DOWN and grid_y < 2:
+                    grid_y += 1
         
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT] and player.x - PLAYER_VEL >= 0:
-            player.x -= PLAYER_VEL
-        if keys[pygame.K_RIGHT] and player.x + PLAYER_VEL + player.width <= WIDTH:
-            player.x += PLAYER_VEL
+        player.x += (target_x - player.x) * 0.1 #quanto maior a constante, mais rápido se descola 
+        player.y += (target_y - player.y) * 0.1
+
 
         for star in stars[:]:
             star.y += STAR_VEL
